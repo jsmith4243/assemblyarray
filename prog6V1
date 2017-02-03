@@ -1,0 +1,609 @@
+;;;;;;;
+
+;Name: Joel Smith
+
+;Email: smithjoe@onid.oregonstate.edu
+
+;class number: cs271-400
+
+;assignment number: program 6A
+
+;assignment due date: week 10 sunday 11:59pm
+
+;;;;;;;
+
+INCLUDE Irvine32.inc
+
+
+getString MACRO   arraySize, array, string3 ;figure out how to pass multiple arguments
+
+	push edx
+	push ecx
+
+	mov edx,  string3
+	call WriteString
+	mov edx,  array
+	mov ecx, arraySize ;using SIZEOF on the array
+	call ReadString
+
+	
+
+	call CrLf
+	
+	pop ecx
+	pop edx
+
+ENDM
+
+displayString MACRO array
+
+	mov edx, OFFSET array
+
+	call WriteString
+
+	call CrLf
+
+	
+
+ENDM
+
+
+.data
+
+	
+	;intergerArray
+	intergerArray DWORD 10 DUP(?)
+
+	testIntergerArray DWORD 10, 20, 30, 44, 55, 44, 33, 55, 23, 56
+
+	arrayFillPosition DWORD 0
+	
+
+	intergerProcessed DWORD ? ;the interger processed by the function
+
+	;char string array
+	array BYTE 20 DUP(?)
+
+
+	string1 BYTE "Program Title: Program6A", 0
+
+	string2 BYTE "Programmer: Joel Smith", 0
+
+	string3 BYTE "Enter a unsigned interger: ", 0
+
+	string4 BYTE "The interger array is: ", 0
+
+	string5 BYTE "The sum is: ", 0
+
+	string6 BYTE "The average is: ", 0
+
+	string7 BYTE "Farewell User."
+
+	string8 BYTE "ERROR: Incorrect input. Enter again: "
+
+	space BYTE " ", 0
+
+
+
+.code
+
+
+
+main proc
+
+	
+
+
+	call introduction
+
+	
+	mov ecx, 10
+	Top:
+
+	;push string8
+	mov eax, OFFSET string8
+	push eax
+	
+
+	;push string3
+	mov eax, OFFSET string3 ;has to be put in eax as offset
+	push eax
+
+	;push array
+	mov eax, OFFSET array ;has to be put in eax as offset
+	push eax
+
+	;push arraySize
+	mov eax, SIZEOF array
+	push eax
+
+	;push intergerProcessed
+	mov eax, OFFSET intergerProcessed ;interger processed is containing the character value
+	push eax
+
+
+	
+	;OFFSET string3 pushed, OFFSET array pushed, arraySize pushed, OFFSET intergerProcessed pushed
+	call readVal ;input checking inside procedure
+	;calling it more than once is crashing for some reason
+
+	;intergerProcessed contains interger
+
+	;fillIntergerArray
+	mov eax, OFFSET intergerArray
+	push eax
+	;push arrayFillPosition
+	mov eax, arrayFillPosition ;is incrementing
+	push eax
+	;push intergerProcessed
+	mov eax, intergerProcessed ;intergerProcessed is correct
+	push eax
+	call fillIntergerArray
+	mov eax, arrayFillPosition
+	inc eax
+	mov arrayFillPosition, eax
+	
+	
+	loop Top
+
+	mov edx, OFFSET string4
+	call WriteString
+	call CrLf
+	
+
+	;push OFFSET intergerArray
+	mov eax, OFFSET intergerArray
+	;mov eax, OFFSET testIntergerArray
+	push eax
+	
+	mov eax, OFFSET space
+	push eax
+	call displayIntergerArray
+
+	call CrLf
+	call CrLf
+	
+	
+	;displaySum
+	mov eax, OFFSET intergerArray
+	push eax
+
+	mov eax, OFFSET string5
+	push eax
+
+	call displaySum
+
+	;call displayAverage
+	mov eax, OFFSET intergerArray
+	push eax
+
+	mov eax, OFFSET string6
+	push eax
+
+	call displayAverage
+
+
+
+	
+	
+
+	;convert int array to char string and display
+	
+
+	invoke ExitProcess,0
+
+	
+
+main endp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+introduction PROC 
+;
+;Introduces user to program
+;
+;Preconditions:  string1 and 2 pass in stack
+;				
+;				
+;
+;Postconditions: none.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+
+
+
+
+	PUSHAD
+
+	mov edx, OFFSET string1
+	call WriteString
+	call CrLf
+
+	mov edx, OFFSET string2
+	call WriteString
+	call CrLf
+
+
+	call CrLf
+
+
+	POPAD
+
+
+	pop ebp
+
+
+	
+
+
+ 	ret
+
+introduction  ENDP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+readVal PROC 
+;
+;Gets request variable from user, the number of random numbers to display. It is first tested as request then stored in requestValidated once validated by validate procedure.
+;
+;Preconditions: OFFSET string8, OFFSET string3 pushed, OFFSET array pushed, arraySize pushed, OFFSET intergerProcessed pushed
+;				
+;				
+;
+;Postconditions: request variable is updated with user input
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+	PUSHAD
+
+	;jmp start
+
+	;invalid:
+
+	;mov edx, [ebp+24]
+	;call WriteString
+	;call CrLf
+
+	;sub esi, 4
+
+
+
+	;start:
+
+	;mov eax, [ebp+8] ;OFFSET intergerProcessed
+	;mov ebx, [ebp+12] ;arraySize
+	;mov ecx, [ebp+16] ;OFFSET array
+	;mov edx, [ebp+20] ;string3
+	;[ebp+24] ;string8
+	;array, arraySize, string3
+	;getString eax, ebx
+	
+	getString [ebp+12], [ebp+16], [ebp+20] ;HERE
+	
+	
+
+	;convert to digit
+	mov eax, 0 ;x = 0
+
+	
+	mov ecx, [ebp+12] ;set counter
+	dec ecx		;minus 1
+	mov esi, [ebp+16] 
+	cld	;moving forward
+	Top:
+	
+
+	;save eax
+	mov edx, [ebp+8]
+	mov [edx], eax
+
+	lodsb ;byte in AL register ;works good ;it seems here its always evalutating the first 6
+	cmp al, 48 
+	jl break
+	cmp al, 57
+	jg break
+	label1:
+	;if less than 48 or more than 57 break
+
+	mov ebx, 48
+	movzx edx, al ;zero expand
+	sub edx, ebx ;edx is str(k)-48 ; all of this + (10*x) ;edx contains int value of the char
+
+	;restore eax ;eax represents x above
+	mov ebx, [ebp+8]
+	mov eax, [ebx]
+
+	;eax should be zero here first iteration
+
+	push edx
+	mov edx, 10
+	mul edx
+	pop edx
+
+	add eax, edx
+
+	
+
+
+
+
+	loop Top
+	
+	;eax is the running total
+	;save into intergerProcessed
+	mov ebx, [ebp+8] ;intergerProcessed contains the char val
+	mov [ebx], eax
+
+	
+	break:
+	
+	
+
+	POPAD
+	
+	pop ebp
+
+ 	ret 20
+
+readVal  ENDP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+writeVal PROC 
+;
+;Validates request variable to see if it is within bounds. If not prompts user again for input. If is within bounds updates requestValidated with the value of request
+;
+;Preconditions: request has been pushed by reference on stack as [ebp+12]. requestValidated is pushed on stack by reference as [ebp+8]
+;				
+;				
+;
+;Postconditions: requestValidated is updated with valid user input.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+	
+	PUSHAD
+	
+
+
+	POPAD
+
+	pop ebp
+
+ 	ret 8
+
+writeVal  ENDP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+fillIntergerArray PROC 
+;
+;Display a interger array of 10 items
+;
+;Preconditions: OFFSET intergerArray poped, poped arrayFillPosition, poped intergerProcessed
+;				
+;				
+;
+;Postconditions: Array is displayed.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+	PUSHAD
+
+
+
+
+	mov ecx, [ebp+8] ;intergerProcessed
+
+	mov ebx, [ebp+12] ;arrayFillPosition
+	
+
+	
+	mov edi, [ebp+16] ;array
+	
+	;arrayFillPosition should be multiplied by 4
+	mov eax, ebx
+	mov ebx, 4
+	mul ebx
+	add edi, eax 
+	;add edi, 4
+
+
+
+	mov [edi], ecx
+
+	
+	
+
+	POPAD
+	
+	pop ebp
+
+ 	ret 12
+
+fillIntergerArray  ENDP
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+displayIntergerArray PROC 
+;
+;Display a interger array of 10 items
+;
+;Preconditions:  pushed offset array[+12], offset space[+8]
+;				
+;				
+;
+;Postconditions: Array is displayed.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+
+	PUSHAD
+
+	
+	mov esi, [ebp+12]
+
+	
+	mov ecx, 10
+	Top:
+	mov eax, [esi]
+	call WriteDec
+	
+
+	mov edx, [ebp+8] ;space
+	call WriteString
+
+	add esi, 4
+	loop top
+	
+
+	POPAD
+	
+	pop ebp
+
+ 	ret 8
+
+displayIntergerArray  ENDP
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+displaySum PROC 
+;
+;Sorts the array in descending order
+;
+;Preconditions: array pointer in stack at [ebp+12], string5(sum) in stack at [ebp+8]
+;				
+;				
+;
+;Postconditions: array is sorted
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+	PUSHAD
+
+	mov esi, [ebp+12]
+
+	mov ebx, 0 ;running total
+	mov ecx, 10
+	Top:
+	mov eax, [esi]
+	add ebx, eax
+	
+	
+
+
+
+	add esi, 4
+	loop top
+	
+	mov edx, [ebp+8] ;space
+	call WriteString
+
+	mov eax, ebx
+	call WriteDec
+
+	call CrLf
+	call CrLf
+
+
+	POPAD
+
+	
+	pop ebp
+
+ 	ret 8
+
+displaySum  ENDP
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+displayAverage PROC 
+;
+;Displays the median of the list
+;
+;Preconditions: array pointer in stack at [ebp+12], string6(average) in stack at [ebp+8]
+;				
+;				
+;
+;Postconditions: The median of the list is displayed 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	push ebp
+
+	mov ebp, esp ;ebp is now pointing to top of stack
+
+
+	PUSHAD
+
+
+	mov esi, [ebp+12]
+
+	mov ebx, 0 ;running total
+	mov ecx, 10
+	Top:
+	mov eax, [esi]
+	add ebx, eax
+	
+	
+
+
+
+	add esi, 4
+	loop top
+	
+	mov edx, [ebp+8] ;space
+	call WriteString
+
+	mov eax, ebx ;ebx is total
+	cdq
+	mov ebx, 10
+	div ebx
+
+	;quotient is in eax
+	;ramainder is in edx
+
+	call WriteDec
+
+	call CrLf
+	call CrLf
+
+
+
+	POPAD
+
+	
+	pop ebp
+
+ 	ret 8
+
+displayAverage  ENDP
+
+
+
+
+end main
+
+
+
+
+
+
